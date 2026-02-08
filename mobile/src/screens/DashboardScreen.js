@@ -10,8 +10,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSocket } from '../services/socket';
 import api from '../services/api';
+import { getApiUrl, DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT, DEFAULT_API_KEY } from '../config';
 import { colors, spacing, radius, typography } from '../theme';
 
 function Section({ title, children, style }) {
@@ -46,6 +49,26 @@ export default function DashboardScreen() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => { load(); }, []);
+
+    // Reload saved config (especially API key) every time Dashboard gains focus
+    useFocusEffect(
+        React.useCallback(() => {
+            (async () => {
+                try {
+                    const raw = await AsyncStorage.getItem('@rin_server_config');
+                    if (raw) {
+                        const c = JSON.parse(raw);
+                        const h = c.host || DEFAULT_SERVER_HOST;
+                        const p = c.port || DEFAULT_SERVER_PORT;
+                        const k = c.apiKey || DEFAULT_API_KEY;
+                        api.setBaseUrl(getApiUrl(h, p));
+                        api.setApiKey(k);
+                    }
+                } catch { }
+            })();
+            load();
+        }, [])
+    );
 
     // ── Derive agentRunning from API polling (correct source of truth) ──
     // Socket.IO status is for task activity, not whether the process is alive
@@ -120,11 +143,8 @@ export default function DashboardScreen() {
             const st = await api.getAgentStatus().catch(() => ({}));
             setAgentRunning(st.running ?? false);
         } catch (e) {
-            // Try to extract reason from response body
-            try {
-                const body = e?.response ? await e.response.json() : null;
-                if (body?.reason) setAlertMsg(body.reason);
-            } catch { }
+            const msg = e?.data?.message || e?.message || 'Request failed';
+            setAlertMsg(msg);
         } finally { setLoading(false); }
     };
 

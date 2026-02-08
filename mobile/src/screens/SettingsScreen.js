@@ -19,8 +19,8 @@ import { colors, spacing, radius, typography } from '../theme';
 const STORAGE_KEY = '@rin_server_config';
 
 // Current app version — must match version.json on the server after a build
-const APP_VERSION = '1.1.0';
-const APP_VERSION_CODE = 2;
+const APP_VERSION = '1.2.0';
+const APP_VERSION_CODE = 3;
 
 function Section({ title, children }) {
     return <View style={{ marginTop: 24 }}><Text style={s.sectionTitle}>{title}</Text><View style={s.card}>{children}</View></View>;
@@ -80,9 +80,19 @@ export default function SettingsScreen() {
         try {
             api.setBaseUrl(getApiUrl(host, port));
             api.setApiKey(apiKey);
-            await api.getHealth();
+            // Use /agent/status (requires auth) instead of /health (public)
+            // so we verify the API key actually works
+            await api.getAgentStatus();
             setTestResult('ok');
-        } catch (e) { setTestResult('fail'); }
+        } catch (e) {
+            // Show auth errors clearly
+            const msg = e?.data?.message || e?.message || '';
+            if (e?.status === 401 || msg.toLowerCase().includes('unauthorized')) {
+                setTestResult('auth_fail');
+            } else {
+                setTestResult('fail');
+            }
+        }
         finally { setTesting(false); }
     };
 
@@ -177,10 +187,10 @@ export default function SettingsScreen() {
 
                     {testResult && (
                         <View style={[s.result, testResult === 'ok' || testResult === 'saved' ? s.resultOk : s.resultFail]}>
-                            <Ionicons name={testResult === 'ok' || testResult === 'saved' ? 'checkmark-circle' : 'close-circle'}
+                            <Ionicons name={testResult === 'ok' || testResult === 'saved' ? 'checkmark-circle' : testResult === 'auth_fail' ? 'key-outline' : 'close-circle'}
                                 size={14} color={testResult === 'ok' || testResult === 'saved' ? colors.success : colors.error} />
                             <Text style={[s.resultText, { color: testResult === 'ok' || testResult === 'saved' ? colors.success : colors.error }]}>
-                                {testResult === 'ok' ? 'Connected' : testResult === 'saved' ? 'Saved' : 'Connection failed'}
+                                {testResult === 'ok' ? 'Connected' : testResult === 'saved' ? 'Saved' : testResult === 'auth_fail' ? 'Invalid API key' : 'Connection failed'}
                             </Text>
                         </View>
                     )}

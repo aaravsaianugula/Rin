@@ -50,8 +50,15 @@ mobile/android/
 mobile/ios/
 mobile/dist/
 mobile/Rin.apk
+mobile/builds/
 mobile/package-lock.json
 mobile/.git/
+
+# ── Signing & Keystores ──
+*.jks
+*.keystore
+key.properties
+signing.properties
 
 # ── IDE ──
 .vscode/

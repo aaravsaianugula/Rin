@@ -36,7 +36,14 @@ class ApiService {
                 signal: controller.signal,
                 headers,
             });
-            return await res.json();
+            const data = await res.json();
+            if (!res.ok) {
+                const err = new Error(data.message || `HTTP ${res.status}`);
+                err.status = res.status;
+                err.data = data;
+                throw err;
+            }
+            return data;
         } catch (err) {
             if (err.name === 'AbortError') {
                 throw new Error('Request timed out');

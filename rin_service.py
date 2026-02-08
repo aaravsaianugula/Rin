@@ -1107,7 +1107,7 @@ class RinServiceServer:
         @staticmethod
         def _kill_port_holder(port: int) -> bool:
             """Kill whatever is holding a port. Returns True if something was killed."""
-            pid = SystemGuardian._get_port_pid(port)
+            pid = RinServiceServer.SystemGuardian._get_port_pid(port)
             if pid and pid != os.getpid():
                 try:
                     subprocess.run(f"taskkill /F /PID {pid}", shell=True, capture_output=True, timeout=5)

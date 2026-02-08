@@ -424,6 +424,44 @@ class StatusServer:
                 return {"status": "ok", "message": "Restart initiated"}
             return {"status": "error", "message": "System not ready"}
 
+        # ========== Mobile OTA Update Endpoints ==========
+
+        @self.app.get("/mobile/version")
+        async def mobile_version():
+            """Return current mobile app version info for OTA checks."""
+            import json, os
+            version_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mobile", "version.json")
+            try:
+                with open(version_path, "r") as f:
+                    info = json.load(f)
+                # Check if APK exists
+                apk_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mobile", "builds")
+                apk_path = os.path.join(apk_dir, "rin-release.apk")
+                info["apk_available"] = os.path.exists(apk_path)
+                if info["apk_available"]:
+                    info["apk_size"] = os.path.getsize(apk_path)
+                return info
+            except FileNotFoundError:
+                return {"error": "Version info not available", "version": "0.0.0", "versionCode": 0}
+            except Exception as e:
+                logger.error(f"Failed to read version info: {e}")
+                return {"error": str(e)}
+
+        @self.app.get("/mobile/apk")
+        async def mobile_apk():
+            """Serve the latest APK for OTA download."""
+            import os
+            from fastapi.responses import FileResponse
+            apk_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mobile", "builds")
+            apk_path = os.path.join(apk_dir, "rin-release.apk")
+            if not os.path.exists(apk_path):
+                return {"status": "error", "message": "No APK available"}
+            return FileResponse(
+                apk_path,
+                media_type="application/vnd.android.package-archive",
+                filename="rin-release.apk"
+            )
+
 
     def set_vlm_status(self, status: str):
         """Update VLM health status."""

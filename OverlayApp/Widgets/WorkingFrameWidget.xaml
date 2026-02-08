@@ -1,0 +1,340 @@
+<UserControl x:Class="OverlayApp.Widgets.WorkingFrameWidget"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch"
+             IsHitTestVisible="False">
+    
+    <!-- 
+    Working Frame Widget - REVAMPED
+    Dynamic animated border with:
+    - State-driven color (THINKING = warm ivory, EXECUTING = lavender)
+    - Gradient sweep animation (traveling highlight around perimeter)
+    - Professional pulsing that differentiates processing phases
+    -->
+    
+    <UserControl.Resources>
+        <!-- THINKING: Fast pulse (0.8s cycle) -->
+        <Storyboard x:Key="ThinkingPulse" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation 
+                Storyboard.TargetName="TopBorder"
+                Storyboard.TargetProperty="Opacity"
+                From="0.5" To="0.9" Duration="0:0:0.8">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation 
+                Storyboard.TargetName="BottomBorder"
+                Storyboard.TargetProperty="Opacity"
+                From="0.5" To="0.9" Duration="0:0:0.8">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation 
+                Storyboard.TargetName="LeftBorder"
+                Storyboard.TargetProperty="Opacity"
+                From="0.4" To="0.7" Duration="0:0:0.8">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation 
+                Storyboard.TargetName="RightBorder"
+                Storyboard.TargetProperty="Opacity"
+                From="0.4" To="0.7" Duration="0:0:0.8">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        
+        <!-- EXECUTING: Very fast pulse (0.4s) with traveling highlight -->
+        <Storyboard x:Key="ExecutingPulse" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation 
+                Storyboard.TargetName="TopBorder"
+                Storyboard.TargetProperty="Opacity"
+                From="0.6" To="1" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation 
+                Storyboard.TargetName="BottomBorder"
+                Storyboard.TargetProperty="Opacity"
+                From="0.6" To="1" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation 
+                Storyboard.TargetName="TopBorderBlur"
+                Storyboard.TargetProperty="Radius"
+                From="15" To="35" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation 
+                Storyboard.TargetName="BottomBorderBlur"
+                Storyboard.TargetProperty="Radius"
+                From="15" To="35" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
+        <!-- Gradient Sweep: Traveling highlight clockwise around edges -->
+        <Storyboard x:Key="GradientSweep" RepeatBehavior="Forever">
+            <!-- Top edge highlight travels left to right -->
+            <DoubleAnimation 
+                Storyboard.TargetName="TopHighlight"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                From="-200" To="200" Duration="0:0:2">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <!-- Right edge follows -->
+            <DoubleAnimation 
+                Storyboard.TargetName="RightHighlight"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                From="-200" To="200" Duration="0:0:2" BeginTime="0:0:0.5">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <!-- Bottom edge travels right to left -->
+            <DoubleAnimation 
+                Storyboard.TargetName="BottomHighlight"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                From="200" To="-200" Duration="0:0:2" BeginTime="0:0:1">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <!-- Left edge follows -->
+            <DoubleAnimation 
+                Storyboard.TargetName="LeftHighlight"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                From="200" To="-200" Duration="0:0:2" BeginTime="0:0:1.5">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </UserControl.Resources>
+    
+    <Grid>
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- BASE GLOW LAYER - State-colored perimeter                          -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        
+        <!-- Top Edge Glow -->
+        <Border x:Name="TopBorder"
+                VerticalAlignment="Top"
+                Height="10"
+                Opacity="0.6">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop x:Name="TopGradientStart" Color="#80E8DCC8" Offset="0"/>
+                    <GradientStop x:Name="TopGradientMid" Color="#40E8DCC8" Offset="0.5"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect x:Name="TopBorderBlur" Radius="20"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Bottom Edge Glow -->
+        <Border x:Name="BottomBorder"
+                VerticalAlignment="Bottom"
+                Height="10"
+                Opacity="0.6">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                    <GradientStop x:Name="BottomGradientStart" Color="#80E8DCC8" Offset="0"/>
+                    <GradientStop x:Name="BottomGradientMid" Color="#40E8DCC8" Offset="0.5"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect x:Name="BottomBorderBlur" Radius="20"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Left Edge Glow -->
+        <Border x:Name="LeftBorder"
+                HorizontalAlignment="Left"
+                Width="8"
+                Opacity="0.4">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop x:Name="LeftGradientStart" Color="#60E8DCC8" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="15"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Right Edge Glow -->
+        <Border x:Name="RightBorder"
+                HorizontalAlignment="Right"
+                Width="8"
+                Opacity="0.4">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
+                    <GradientStop x:Name="RightGradientStart" Color="#60E8DCC8" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="15"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- TRAVELING HIGHLIGHT LAYER - Kinetic sweep effect                    -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        
+        <!-- Top traveling highlight -->
+        <Border x:Name="TopHighlight"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Width="400" Height="6"
+                Opacity="0.7">
+            <Border.RenderTransform>
+                <TranslateTransform X="0" Y="0"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="#80FFFFFF" Offset="0"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="12"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Right traveling highlight -->
+        <Border x:Name="RightHighlight"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Width="6" Height="300"
+                Opacity="0.5">
+            <Border.RenderTransform>
+                <TranslateTransform X="0" Y="0"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="#60FFFFFF" Offset="0"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="10"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Bottom traveling highlight -->
+        <Border x:Name="BottomHighlight"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Center"
+                Width="400" Height="6"
+                Opacity="0.7">
+            <Border.RenderTransform>
+                <TranslateTransform X="0" Y="0"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="#80FFFFFF" Offset="0"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="12"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Left traveling highlight -->
+        <Border x:Name="LeftHighlight"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Left"
+                Width="6" Height="300"
+                Opacity="0.5">
+            <Border.RenderTransform>
+                <TranslateTransform X="0" Y="0"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="#60FFFFFF" Offset="0"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="10"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- CORNER ACCENTS - Enhanced glow at corners                           -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        
+        <Border VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" Height="80" Margin="-8,-8,0,0">
+            <Border.Background>
+                <RadialGradientBrush GradientOrigin="0,0" Center="0,0" RadiusX="1" RadiusY="1">
+                    <GradientStop x:Name="CornerTL" Color="#50E8DCC8" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="16"/>
+            </Border.Effect>
+        </Border>
+        
+        <Border VerticalAlignment="Top" HorizontalAlignment="Right" Width="80" Height="80" Margin="0,-8,-8,0">
+            <Border.Background>
+                <RadialGradientBrush GradientOrigin="1,0" Center="1,0" RadiusX="1" RadiusY="1">
+                    <GradientStop x:Name="CornerTR" Color="#50E8DCC8" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="16"/>
+            </Border.Effect>
+        </Border>
+        
+        <Border VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Height="80" Margin="-8,0,0,-8">
+            <Border.Background>
+                <RadialGradientBrush GradientOrigin="0,1" Center="0,1" RadiusX="1" RadiusY="1">
+                    <GradientStop x:Name="CornerBL" Color="#50E8DCC8" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="16"/>
+            </Border.Effect>
+        </Border>
+        
+        <Border VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="80" Height="80" Margin="0,0,-8,-8">
+            <Border.Background>
+                <RadialGradientBrush GradientOrigin="1,1" Center="1,1" RadiusX="1" RadiusY="1">
+                    <GradientStop x:Name="CornerBR" Color="#50E8DCC8" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="16"/>
+            </Border.Effect>
+        </Border>
+    </Grid>
+</UserControl>

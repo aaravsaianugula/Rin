@@ -1,0 +1,42 @@
+<Window x:Class="OverlayApp.MainOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OverlayApp"
+        xmlns:widgets="clr-namespace:OverlayApp.Widgets"
+        mc:Ignorable="d"
+        Title="Rin Overlay" 
+        Height="450" Width="800"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowState="Maximized"
+        Icon="rin_logo.png">
+    
+    <!-- Resources MUST come before content -->
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
+    
+    <Grid>
+        <!-- Working Frame Border - Always visible when agent is busy -->
+        <widgets:WorkingFrameWidget x:Name="WorkingFrame" 
+                                    Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}" />
+        
+        <!-- Voice Aura - Visible during voice listening -->
+        <widgets:VoiceAuraWidget x:Name="VoiceAura"
+                                 Visibility="Collapsed" />
+        
+        <!-- ItemsControl for dynamic widgets (CommandBar, etc) -->
+        <ItemsControl ItemsSource="{Binding Widgets}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid IsItemsHost="True" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </Grid>
+</Window>

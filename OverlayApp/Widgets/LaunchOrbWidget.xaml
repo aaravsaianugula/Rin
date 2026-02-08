@@ -1,0 +1,269 @@
+<UserControl x:Class="OverlayApp.Widgets.LaunchOrbWidget"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:helpers="clr-namespace:OverlayApp.Helpers"
+             mc:Ignorable="d" 
+             HorizontalAlignment="Right"
+             VerticalAlignment="Bottom"
+             Margin="0,0,28,28">
+
+    <!-- 
+    Launch Orb Widget - REVAMPED
+    Features:
+    - State-reactive inner core (color follows AgentStateGlowColor)
+    - Completion burst effect (radial ripple on COMPLETE)
+    - Enhanced breathing animation with glow intensity modulation
+    - Smooth color transitions between states
+    -->
+
+    <Grid Background="Transparent">
+        <!-- Breathing container with animation applied at this level -->
+        <Grid x:Name="BreathingContainer" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform x:Name="BreathingScale" ScaleX="1" ScaleY="1"/>
+            </Grid.RenderTransform>
+            
+            <!-- ═══════════════════════════════════════════════════════════════════ -->
+            <!-- COMPLETION BURST LAYER - Radial ripple on success                  -->
+            <!-- ═══════════════════════════════════════════════════════════════════ -->
+            
+            <!-- Burst Ring 1 (fast) -->
+            <Ellipse x:Name="BurstRing1"
+                     Width="44" Height="44"
+                     Stroke="#9BB5A0"
+                     StrokeThickness="2"
+                     Opacity="0"
+                     Margin="0"
+                     RenderTransformOrigin="0.5,0.5">
+                <Ellipse.RenderTransform>
+                    <ScaleTransform x:Name="BurstScale1" ScaleX="1" ScaleY="1"/>
+                </Ellipse.RenderTransform>
+                <Ellipse.Effect>
+                    <BlurEffect Radius="4"/>
+                </Ellipse.Effect>
+            </Ellipse>
+            
+            <!-- Burst Ring 2 (delayed) -->
+            <Ellipse x:Name="BurstRing2"
+                     Width="44" Height="44"
+                     Stroke="#9BB5A0"
+                     StrokeThickness="1.5"
+                     Opacity="0"
+                     Margin="0"
+                     RenderTransformOrigin="0.5,0.5">
+                <Ellipse.RenderTransform>
+                    <ScaleTransform x:Name="BurstScale2" ScaleX="1" ScaleY="1"/>
+                </Ellipse.RenderTransform>
+                <Ellipse.Effect>
+                    <BlurEffect Radius="6"/>
+                </Ellipse.Effect>
+            </Ellipse>
+            
+            <Button Command="{Binding ExpandCommand}"
+                    helpers:HitTestHelper.IsHitTestable="True"
+                    Width="44" Height="44"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    Cursor="Hand">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="OrbContainer" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="OrbScale" ScaleX="1" ScaleY="1"/>
+                            </Grid.RenderTransform>
+                            
+                            <!-- State-reactive ambient glow (behind orb) -->
+                            <Ellipse x:Name="AmbientGlow" 
+                                     Opacity="0.22"
+                                     Margin="-12">
+                                <Ellipse.Fill>
+                                    <SolidColorBrush x:Name="AmbientGlowBrush" Color="#A8C5D9"/>
+                                </Ellipse.Fill>
+                                <Ellipse.Effect>
+                                    <BlurEffect x:Name="AmbientBlur" Radius="22"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            
+                            <!-- Secondary glow ring for depth -->
+                            <Ellipse x:Name="SecondaryGlow"
+                                     Opacity="0.12"
+                                     Margin="-6">
+                                <Ellipse.Fill>
+                                    <SolidColorBrush x:Name="SecondaryGlowBrush" Color="#A8C5D9"/>
+                                </Ellipse.Fill>
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="12"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            
+                            <!-- Hover highlight ring -->
+                            <Ellipse x:Name="HoverRing" 
+                                     Stroke="#30FFFFFF" 
+                                     StrokeThickness="1.5"
+                                     Opacity="0"
+                                     Margin="-4"/>
+                            
+                            <!-- Main orb body -->
+                            <Ellipse x:Name="OrbBody" 
+                                     Fill="#30FFFFFF" 
+                                     Stroke="#50FFFFFF" 
+                                     StrokeThickness="1">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="2" Opacity="0.4"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            
+                            <!-- Inner glass highlight -->
+                            <Ellipse Margin="4,4,4,12">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                        <GradientStop Color="#20FFFFFF" Offset="0"/>
+                                        <GradientStop Color="#00FFFFFF" Offset="0.6"/>
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            
+                            <!-- State-reactive center dot -->
+                            <Ellipse x:Name="CenterDot" 
+                                     Width="10" Height="10" 
+                                     Opacity="0.95"
+                                     HorizontalAlignment="Center" 
+                                     VerticalAlignment="Center">
+                                <Ellipse.Fill>
+                                    <SolidColorBrush x:Name="CenterDotBrush" Color="#E0E0E0"/>
+                                </Ellipse.Fill>
+                                <Ellipse.Effect>
+                                    <DropShadowEffect x:Name="CenterDotGlow" Color="#A8C5D9" BlurRadius="6" ShadowDepth="0" Opacity="0.5"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Grid>
+                        
+                        <ControlTemplate.Triggers>
+                            <!-- Hover: expand glow and show ring -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverRing" 
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="AmbientGlow" 
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0.35" Duration="0:0:0.25"/>
+                                            <DoubleAnimation Storyboard.TargetName="AmbientBlur" 
+                                                             Storyboard.TargetProperty="Radius"
+                                                             To="28" Duration="0:0:0.25"/>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleX"
+                                                             To="1.1" Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleY"
+                                                             To="1.1" Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverRing" 
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="0:0:0.2"/>
+                                            <DoubleAnimation Storyboard.TargetName="AmbientGlow" 
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0.22" Duration="0:0:0.25"/>
+                                            <DoubleAnimation Storyboard.TargetName="AmbientBlur" 
+                                                             Storyboard.TargetProperty="Radius"
+                                                             To="22" Duration="0:0:0.25"/>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleX"
+                                                             To="1" Duration="0:0:0.2"/>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleY"
+                                                             To="1" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            
+                            <!-- Press: quick scale down with bounce back -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleX"
+                                                             To="0.9" Duration="0:0:0.08"/>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleY"
+                                                             To="0.9" Duration="0:0:0.08"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleX"
+                                                             To="1.1" Duration="0:0:0.18">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="OrbScale" 
+                                                             Storyboard.TargetProperty="ScaleY"
+                                                             To="1.1" Duration="0:0:0.18">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+        
+        <!-- Breathing animation (targets the outer container) -->
+        <Grid.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard>
+                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                        <DoubleAnimation Storyboard.TargetName="BreathingScale"
+                                         Storyboard.TargetProperty="ScaleX"
+                                         From="1" To="1.04" 
+                                         Duration="0:0:2.8">
+                            <DoubleAnimation.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="BreathingScale"
+                                         Storyboard.TargetProperty="ScaleY"
+                                         From="1" To="1.04" 
+                                         Duration="0:0:2.8">
+                            <DoubleAnimation.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Grid.Triggers>
+    </Grid>
+</UserControl>

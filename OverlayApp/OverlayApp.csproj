@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>rin_logo.ico</ApplicationIcon>
+    <AssemblyName>Rin Agent</AssemblyName>
+    <!-- Suppress MVVM Toolkit and WPF source generator nullability false positives -->
+    <NoWarn>$(NoWarn);MVVMTK0034;CS8618;CS8622;CS8625;CS8634;CS8767</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="rin_logo.png" />
+    <None Update="rin_logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+</Project>

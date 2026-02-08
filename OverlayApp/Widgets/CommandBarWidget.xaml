@@ -1,0 +1,551 @@
+<UserControl x:Class="OverlayApp.Widgets.CommandBarWidget"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:helpers="clr-namespace:OverlayApp.Helpers"
+             mc:Ignorable="d" 
+             Width="620"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Top"
+             Opacity="0"
+             Margin="0,12,0,0">
+    
+    <UserControl.RenderTransform>
+        <TransformGroup>
+            <ScaleTransform x:Name="CardScale" ScaleX="0.96" ScaleY="0.96"/>
+            <TranslateTransform x:Name="CardTranslate" Y="-40"/>
+        </TransformGroup>
+    </UserControl.RenderTransform>
+    <UserControl.RenderTransformOrigin>0.5,0</UserControl.RenderTransformOrigin>
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <!-- Ambient Glow Brush (bound to state) -->
+        <SolidColorBrush x:Key="AmbientGlowBrush" Color="{Binding AgentStateGlowColor}"/>
+    </UserControl.Resources>
+    
+    <!-- Fluid Entrance Animation -->
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <!-- Fade in -->
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                     From="0" To="1" 
+                                     Duration="0:0:0.5">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    
+                    <!-- Slide down with gentle overshoot -->
+                    <DoubleAnimation Storyboard.TargetName="CardTranslate"
+                                     Storyboard.TargetProperty="Y" 
+                                     From="-40" To="0" 
+                                     Duration="0:0:0.6">
+                        <DoubleAnimation.EasingFunction>
+                            <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    
+                    <!-- Scale up -->
+                    <DoubleAnimation Storyboard.TargetName="CardScale"
+                                     Storyboard.TargetProperty="ScaleX" 
+                                     From="0.96" To="1" 
+                                     Duration="0:0:0.5">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="CardScale"
+                                     Storyboard.TargetProperty="ScaleY" 
+                                     From="0.96" To="1" 
+                                     Duration="0:0:0.5">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid>
+        <!-- Ambient Glow Layer (behind card) - Soft, Professional -->
+        <Border x:Name="AmbientGlow"
+                CornerRadius="20"
+                Margin="-6"
+                Opacity="0.2">
+            <Border.Background>
+                <SolidColorBrush Color="{Binding AgentStateGlowColor}"/>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="32"/>
+            </Border.Effect>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <!-- Gentle pulse when loading -->
+                        <DataTrigger Binding="{Binding AgentState.Status}" Value="loading">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="GlowPulse">
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                         From="0.15" To="0.3" 
+                                                         Duration="0:0:2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <SineEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="GlowPulse"/>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding AgentState.Status}" Value="THINKING">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="GlowPulse2">
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                         From="0.15" To="0.3" 
+                                                         Duration="0:0:2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <SineEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="GlowPulse2"/>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <!-- Active pulse when executing (faster, more energetic) -->
+                        <DataTrigger Binding="{Binding AgentState.Status}" Value="EXECUTING">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="GlowExecute">
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                         From="0.22" To="0.35" 
+                                                         Duration="0:0:1.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <SineEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="(Border.Effect).(BlurEffect.Radius)" 
+                                                         From="32" To="40" 
+                                                         Duration="0:0:1.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <SineEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="GlowExecute"/>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <!-- Success celebration when complete -->
+                        <DataTrigger Binding="{Binding AgentState.Status}" Value="COMPLETE">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="GlowComplete">
+                                    <Storyboard>
+                                        <!-- Quick bright flash -->
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                         To="0.5" 
+                                                         Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <!-- Expand blur on flash -->
+                                        <DoubleAnimation Storyboard.TargetProperty="(Border.Effect).(BlurEffect.Radius)" 
+                                                         To="50" 
+                                                         Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <!-- Settle to steady glow -->
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                         To="0.25" BeginTime="0:0:0.3"
+                                                         Duration="0:0:0.8">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <!-- Contract blur back -->
+                                        <DoubleAnimation Storyboard.TargetProperty="(Border.Effect).(BlurEffect.Radius)" 
+                                                         To="32" BeginTime="0:0:0.3"
+                                                         Duration="0:0:0.8">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <!-- Final fade -->
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                         To="0.15" BeginTime="0:0:2"
+                                                         Duration="0:0:1.5">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="GlowComplete"/>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+        </Border>
+        
+        <!-- Main Glass Card -->
+        <Border x:Name="MainCard"
+                CornerRadius="14"
+                helpers:HitTestHelper.IsHitTestable="True"
+                Background="#F0181818"
+                BorderThickness="1"
+                MaxHeight="260"
+                Padding="0">
+            
+            <!-- Top-lit border gradient -->
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#28FFFFFF" Offset="0"/>
+                    <GradientStop Color="#0CFFFFFF" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+            
+            <!-- Soft shadow -->
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="28" ShadowDepth="4" Opacity="0.45" Color="#000000"/>
+            </Border.Effect>
+
+            <Grid>
+                <!-- Inner highlight layer -->
+                <Border CornerRadius="13" Margin="1" IsHitTestVisible="False">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#08FFFFFF" Offset="0"/>
+                            <GradientStop Color="#00FFFFFF" Offset="0.25"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                
+                <!-- Content -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Input -->
+                        <RowDefinition Height="Auto"/> <!-- Separator -->
+                        <RowDefinition Height="Auto"/> <!-- Content -->
+                        <RowDefinition Height="Auto"/> <!-- Footer -->
+                    </Grid.RowDefinitions>
+
+                    <!-- ROW 0: Input Area -->
+                    <Grid Grid.Row="0" Margin="14,10,14,10" 
+                          Visibility="{Binding IsInputActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Search Icon -->
+                        <Path Data="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                              Fill="#50FFFFFF"
+                              Stretch="Uniform"
+                              Width="15" Height="15"
+                              VerticalAlignment="Center"
+                              Margin="0,0,12,0"/>
+
+                        <!-- Input Box -->
+                        <TextBox Grid.Column="1"
+                                 x:Name="InputBox"
+                                 Text="{Binding UserQuery, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14"
+                                 FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
+                                 FontWeight="Normal"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 VerticalContentAlignment="Center"
+                                 Foreground="#F0F0F0"
+                                 CaretBrush="#F0F0F0">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Return" Command="{Binding SubmitCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+
+                        <!-- Status Indicators -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                            <!-- Backend Dot -->
+                            <Border Width="5" Height="5" CornerRadius="2.5" 
+                                    Background="{Binding BackendStatusColor}" 
+                                    ToolTip="Backend Status">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="{Binding BackendStatusColor}" 
+                                                      BlurRadius="4" ShadowDepth="0" Opacity="0.6"/>
+                                </Border.Effect>
+                            </Border>
+                            
+                            <!-- VLM Dot -->
+                            <Border x:Name="VlmDot" Width="5" Height="5" CornerRadius="2.5" 
+                                    Background="{Binding VlmStatusColor}" 
+                                    Margin="5,0,0,0" 
+                                    ToolTip="VLM Status">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="{Binding VlmStatusColor}" 
+                                                      BlurRadius="4" ShadowDepth="0" Opacity="0.6"/>
+                                </Border.Effect>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding VlmStatus}" Value="STARTING">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="Pulse">
+                                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                                             From="1" To="0.4" 
+                                                                             Duration="0:0:0.7"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="Pulse"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                            </Border>
+                            
+                            <!-- Voice/Mic Indicator -->
+                            <Grid Margin="8,0,0,0" ToolTip="Voice Input" Width="12" Height="12">
+                                <!-- Mic Icon (Path) -->
+                                <Path x:Name="MicIcon"
+                                      Data="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"
+                                      Fill="#505050"
+                                      Stretch="Uniform"
+                                      Width="12" Height="12"
+                                      VerticalAlignment="Center">
+                                    <Path.Style>
+                                        <Style TargetType="Path">
+                                            <Style.Triggers>
+                                                <!-- Listening: Glow blue with breathing -->
+                                                <DataTrigger Binding="{Binding AgentState.VoiceState}" Value="listening">
+                                                    <Setter Property="Fill" Value="#6BB8E8"/>
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard Name="MicBreathing">
+                                                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                                                 From="1" To="0.6" 
+                                                                                 Duration="0:0:1.2">
+                                                                    <DoubleAnimation.EasingFunction>
+                                                                        <SineEase EasingMode="EaseInOut"/>
+                                                                    </DoubleAnimation.EasingFunction>
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+                                                    <DataTrigger.ExitActions>
+                                                        <StopStoryboard BeginStoryboardName="MicBreathing"/>
+                                                    </DataTrigger.ExitActions>
+                                                </DataTrigger>
+                                                <!-- Processing: Quick flash -->
+                                                <DataTrigger Binding="{Binding AgentState.VoiceState}" Value="processing">
+                                                    <Setter Property="Fill" Value="#A080E0"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                                
+                                <!-- Glow effect behind mic when active -->
+                                <Border x:Name="MicGlow" 
+                                        CornerRadius="6" 
+                                        Margin="-4"
+                                        Opacity="0"
+                                        IsHitTestVisible="False">
+                                    <Border.Background>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="#406BB8E8" Offset="0"/>
+                                            <GradientStop Color="#00000000" Offset="1"/>
+                                        </RadialGradientBrush>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <BlurEffect Radius="6"/>
+                                    </Border.Effect>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding AgentState.VoiceState}" Value="listening">
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                                                 To="1" Duration="0:0:0.3"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+                                                    <DataTrigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                                                                 To="0" Duration="0:0:0.2"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.ExitActions>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Separator -->
+                    <Border Grid.Row="1" Height="1" Margin="14,0" 
+                            Background="#12FFFFFF" 
+                            Visibility="{Binding HasContent, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                    <!-- ROW 2: Output / Content -->
+                    <Grid Grid.Row="2" Margin="14,8,14,6" 
+                          Visibility="{Binding HasContent, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <!-- Status Header -->
+                            <TextBlock Text="{Binding AgentState.Status}" 
+                                       Foreground="#60FFFFFF" 
+                                       FontSize="9" 
+                                       FontWeight="Medium"
+                                       FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"
+                                       Margin="0,0,0,6"/>
+                            
+                            <!-- Thought Content (Auto-Scrolling) -->
+                            <ScrollViewer x:Name="ThoughtScroll" 
+                                          VerticalScrollBarVisibility="Hidden" 
+                                          HorizontalScrollBarVisibility="Disabled" 
+                                          Height="44" 
+                                          Margin="0,0,0,8">
+                                <TextBlock Text="{Binding TypewriterText}" 
+                                           FontFamily="Consolas, monospace"
+                                           FontSize="12" 
+                                           Foreground="#CCCCCC"
+                                           TextWrapping="Wrap" 
+                                           LineHeight="16"
+                                           SizeChanged="TextBlock_SizeChanged"/>
+                            </ScrollViewer>
+                                       
+                            <!-- Action Preview -->
+                            <Border Background="#10FFFFFF" 
+                                    CornerRadius="8" 
+                                    Padding="12,6" 
+                                    Margin="0,0,0,4" 
+                                    Visibility="{Binding HasAction, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="▸" Margin="0,0,8,0" Foreground="#A0A0A0"/>
+                                    <TextBlock Text="{Binding AgentState.CurrentAction}" 
+                                               Foreground="#E0E0E0" 
+                                               FontSize="12"
+                                               FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ROW 3: Footer -->
+                    <Grid Grid.Row="3" Margin="14,0,14,10" 
+                          Visibility="{Binding HasContent, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Stats -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="5" Height="5" Fill="{Binding BackendStatusColor}" Margin="0,0,5,0">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect Color="{Binding BackendStatusColor}" 
+                                                      BlurRadius="4" ShadowDepth="0" Opacity="0.5"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="5" Height="5" Fill="{Binding VlmStatusColor}" Margin="0,0,8,0">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect Color="{Binding VlmStatusColor}" 
+                                                      BlurRadius="4" ShadowDepth="0" Opacity="0.5"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <TextBlock Text="{Binding SystemStats}" 
+                                       FontSize="10" 
+                                       Foreground="#606060" 
+                                       FontFamily="Consolas, sans-serif"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Controls -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <!-- Minimize -->
+                            <Button Command="{Binding CollapseCommand}"
+                                    Content="—"
+                                    FontSize="9"
+                                    FontWeight="SemiBold"
+                                    Background="Transparent"
+                                    Foreground="#606060"
+                                    Padding="8,4"
+                                    BorderThickness="0"
+                                    Margin="0,0,6,0"
+                                    Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" 
+                                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#15FFFFFF"/>
+                                                <Setter Property="Foreground" Value="#909090"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Stop -->
+                            <Button Command="{Binding StopCommand}"
+                                    Content="Stop"
+                                    FontSize="10"
+                                    FontWeight="Medium"
+                                    Background="#18B57A7A"
+                                    Foreground="#C09090"
+                                    Padding="10,4"
+                                    BorderThickness="0"
+                                    Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" 
+                                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#28B57A7A"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

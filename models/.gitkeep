@@ -1,0 +1,7 @@
+# Keep this directory - GGUF model files go here
+# 
+# Required files:
+# 1. Qwen3VL-4B-Instruct-Q4_K_M.gguf (main model)
+# 2. mmproj-Qwen3VL-4B-Instruct-F16.gguf (vision projector)
+#
+# Download from: https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF

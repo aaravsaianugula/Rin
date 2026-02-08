@@ -1,0 +1,69 @@
+# ═══════════════════════════════════════════════════
+# Rin — .gitignore
+# ═══════════════════════════════════════════════════
+
+# ── Secrets & Credentials ──
+config/secrets/
+config/.keys.enc
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+.venv/
+venv/
+.pytest_cache/
+
+# ── AI Models (large files — download via setup.ps1) ──
+models/*.gguf
+models/vosk-model-*/
+models/porcupine/
+llama.cpp/
+Rin.apk
+
+# ── OverlayApp (WPF) build artifacts ──
+OverlayApp/bin/
+OverlayApp/obj/
+OverlayApp/*.log
+OverlayApp/build_errors.txt
+
+# ── User data (personal — generated at runtime) ──
+data/memory/
+training_data/
+
+# ── Logs ──
+logs/
+*.log
+
+# ── Mobile (React Native / Expo) ──
+mobile/node_modules/
+mobile/.expo/
+mobile/android/
+mobile/ios/
+mobile/dist/
+mobile/Rin.apk
+mobile/package-lock.json
+mobile/.git/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.suo
+*.user
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Agent workspaces ──
+.gemini/
+.agent/

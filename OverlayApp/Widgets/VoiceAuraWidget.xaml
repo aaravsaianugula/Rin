@@ -1,0 +1,150 @@
+<UserControl x:Class="OverlayApp.Widgets.VoiceAuraWidget"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             Width="700"
+             Height="180"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Top"
+             Margin="0,0,0,0"
+             IsHitTestVisible="False">
+    
+    <!-- 
+    Voice Aura Widget - REVAMPED
+    Multi-ring resonance system with enhanced audio reactivity.
+    Features:
+    - 3 rings animating out-of-phase for organic "ripple" feel
+    - Enhanced audio reactivity with smoothed voice levels
+    - Staggered ripple spawns on voice peaks
+    -->
+    
+    <Grid>
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- AMBIENT GLOW LAYER - Base atmosphere                                -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        
+        <Border x:Name="VoiceAura"
+                CornerRadius="90"
+                Opacity="0.8"
+                Margin="30,10,30,10">
+            <Border.Background>
+                <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.7" RadiusY="0.9">
+                    <GradientStop Color="#70A8C5D9" Offset="0"/>
+                    <GradientStop Color="#408FB5C8" Offset="0.5"/>
+                    <GradientStop Color="#206A99B0" Offset="0.8"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect x:Name="AuraBlur" Radius="45"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- MULTI-RING SYSTEM - Out-of-phase resonance rings                   -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        
+        <!-- Ring 1 (innermost, fastest response) -->
+        <Border x:Name="Ring1"
+                CornerRadius="50"
+                Opacity="0.6"
+                Margin="120,40,120,40"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="Ring1Scale" ScaleX="1" ScaleY="1"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="#50A8D5E8" Offset="0"/>
+                    <GradientStop Color="#30B8E0F0" Offset="0.6"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect x:Name="Ring1Blur" Radius="18"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Ring 2 (middle, medium response) -->
+        <Border x:Name="Ring2"
+                CornerRadius="60"
+                Opacity="0.45"
+                Margin="90,30,90,30"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="Ring2Scale" ScaleX="1" ScaleY="1"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="#40A8D5E8" Offset="0"/>
+                    <GradientStop Color="#20B8E0F0" Offset="0.7"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect x:Name="Ring2Blur" Radius="22"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Ring 3 (outermost, slowest response) -->
+        <Border x:Name="Ring3"
+                CornerRadius="70"
+                Opacity="0.3"
+                Margin="60,20,60,20"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="Ring3Scale" ScaleX="1" ScaleY="1"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="#30A8D5E8" Offset="0"/>
+                    <GradientStop Color="#15B8E0F0" Offset="0.75"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect x:Name="Ring3Blur" Radius="28"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- PEAK RIPPLE EFFECTS - Spawn on voice peaks                          -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        
+        <!-- Ripple 1 -->
+        <Border x:Name="Ripple1"
+                CornerRadius="40"
+                Opacity="0"
+                Margin="150,50,150,50"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="Ripple1Scale" ScaleX="1" ScaleY="1"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <SolidColorBrush Color="#50A8C5D9"/>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="12"/>
+            </Border.Effect>
+        </Border>
+        
+        <!-- Ripple 2 (delayed) -->
+        <Border x:Name="Ripple2"
+                CornerRadius="40"
+                Opacity="0"
+                Margin="150,50,150,50"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="Ripple2Scale" ScaleX="1" ScaleY="1"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <SolidColorBrush Color="#40A8C5D9"/>
+            </Border.Background>
+            <Border.Effect>
+                <BlurEffect Radius="15"/>
+            </Border.Effect>
+        </Border>
+    </Grid>
+</UserControl>

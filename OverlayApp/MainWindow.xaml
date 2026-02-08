@@ -1,0 +1,716 @@
+﻿<Window x:Class="OverlayApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OverlayApp"
+        mc:Ignorable="d"
+        Title="Rin Agent" Height="800" Width="1200"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip"
+        FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif"
+        Icon="rin_logo.png">
+    
+    <Window.Resources>
+        <SolidColorBrush x:Key="MacClose" Color="#FF5F56"/>
+        <SolidColorBrush x:Key="MacMinimize" Color="#FFBD2E"/>
+        <SolidColorBrush x:Key="MacMaximize" Color="#27C93F"/>
+        <SolidColorBrush x:Key="SidebarBg" Color="#F2F2F2"/>
+        <SolidColorBrush x:Key="ContentBg" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="AccentBlue" Color="#007AFF"/>
+
+        <!-- Model Selection Converters -->
+        <local:ModelBorderConverter x:Key="ModelBorderConverter"/>
+        <local:ModelBgConverter x:Key="ModelBgConverter"/>
+
+        <!-- MacOS Nav Button -->
+        <Style x:Key="MacNavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Margin" Value="10,4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="10">
+                            <StackPanel Orientation="Horizontal" Margin="12,0,0,0">
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#EBEBEB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- MacOS Toggle Style -->
+        <Style x:Key="MacToggleStyle" TargetType="CheckBox">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Width="42" Height="22" Cursor="Hand">
+                            <Border x:Name="Bg" Background="#D1D1D1" CornerRadius="11"/>
+                            <Border x:Name="Dot" HorizontalAlignment="Left" Width="18" Height="18" Margin="2" Background="White" CornerRadius="9">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.2"/>
+                                </Border.Effect>
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="0"/>
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#34C759"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="20" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="0" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <local:StringToBrushConverter x:Key="SelectionConverter"/>
+        <local:InverseBrushConverter x:Key="IconConverter"/>
+    </Window.Resources>
+
+    <Border Background="White" CornerRadius="16" BorderThickness="1" BorderBrush="#D1D1D1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="52"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#F2F2F2" CornerRadius="16,16,0,0" MouseDown="TitleBar_MouseDown">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <Ellipse Width="12" Height="12" Fill="{StaticResource MacClose}" Margin="0,0,8,0" Cursor="Hand" MouseLeftButtonDown="Close_Click"/>
+                        <Ellipse Width="12" Height="12" Fill="{StaticResource MacMinimize}" Margin="0,0,8,0" Cursor="Hand" MouseLeftButtonDown="Minimize_Click"/>
+                        <Ellipse Width="12" Height="12" Fill="{StaticResource MacMaximize}" Cursor="Hand" MouseLeftButtonDown="Maximize_Click"/>
+                    </StackPanel>
+                    <TextBlock Text="Rin Agent" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#555555" FontWeight="SemiBold" FontSize="13"/>
+                </Grid>
+            </Border>
+
+            <!-- Sidebar -->
+            <Border Grid.Row="1" Grid.Column="0" Background="#F2F2F2" BorderThickness="0,0,1,0" BorderBrush="#D1D1D1" CornerRadius="0,0,0,16">
+                <Grid>
+                    <StackPanel Margin="0,10,0,0">
+                        <Border Margin="18,15,20,30" Background="White" CornerRadius="10" Padding="6" BorderThickness="1" BorderBrush="#E0E0E0" HorizontalAlignment="Left">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.05"/>
+                            </Border.Effect>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="pack://application:,,,/rin_logo.png" 
+                                       Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock Text="Rin Agent" FontSize="18" FontWeight="Bold" Foreground="#333333" VerticalAlignment="Center" Margin="10,0,6,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Button Style="{StaticResource MacNavButton}" Command="{Binding NavToCommand}" CommandParameter="Home">
+                            <Button.Background>
+                                <Binding Path="CurrentView">
+                                    <Binding.Converter>
+                                        <local:StringToBrushConverter MatchString="Home">
+                                            <local:StringToBrushConverter.MatchBrush>
+                                                <SolidColorBrush Color="#E5E5E5"/>
+                                            </local:StringToBrushConverter.MatchBrush>
+                                            <local:StringToBrushConverter.DefaultBrush>
+                                                <SolidColorBrush Color="Transparent"/>
+                                            </local:StringToBrushConverter.DefaultBrush>
+                                        </local:StringToBrushConverter>
+                                    </Binding.Converter>
+                                </Binding>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center" 
+                                           Foreground="{Binding Path=Background, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource IconConverter}}"/>
+                                <TextBlock Text="Overview" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MacNavButton}" Command="{Binding NavToCommand}" CommandParameter="Intelligence">
+                            <Button.Background>
+                                <Binding Path="CurrentView">
+                                    <Binding.Converter>
+                                        <local:StringToBrushConverter MatchString="Intelligence">
+                                            <local:StringToBrushConverter.MatchBrush>
+                                                <SolidColorBrush Color="#E5E5E5"/>
+                                            </local:StringToBrushConverter.MatchBrush>
+                                            <local:StringToBrushConverter.DefaultBrush>
+                                                <SolidColorBrush Color="Transparent"/>
+                                            </local:StringToBrushConverter.DefaultBrush>
+                                        </local:StringToBrushConverter>
+                                    </Binding.Converter>
+                                </Binding>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"
+                                           Foreground="{Binding Path=Background, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource IconConverter}}"/>
+                                <TextBlock Text="Intelligence" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MacNavButton}" Command="{Binding NavToCommand}" CommandParameter="Workflows">
+                            <Button.Background>
+                                <Binding Path="CurrentView">
+                                    <Binding.Converter>
+                                        <local:StringToBrushConverter MatchString="Workflows">
+                                            <local:StringToBrushConverter.MatchBrush>
+                                                <SolidColorBrush Color="#E5E5E5"/>
+                                            </local:StringToBrushConverter.MatchBrush>
+                                            <local:StringToBrushConverter.DefaultBrush>
+                                                <SolidColorBrush Color="Transparent"/>
+                                            </local:StringToBrushConverter.DefaultBrush>
+                                        </local:StringToBrushConverter>
+                                    </Binding.Converter>
+                                </Binding>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"
+                                           Foreground="{Binding Path=Background, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource IconConverter}}"/>
+                                <TextBlock Text="Workflows" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MacNavButton}" Command="{Binding NavToCommand}" CommandParameter="Memory">
+                            <Button.Background>
+                                <Binding Path="CurrentView">
+                                    <Binding.Converter>
+                                        <local:StringToBrushConverter MatchString="Memory">
+                                            <local:StringToBrushConverter.MatchBrush>
+                                                <SolidColorBrush Color="#E5E5E5"/>
+                                            </local:StringToBrushConverter.MatchBrush>
+                                            <local:StringToBrushConverter.DefaultBrush>
+                                                <SolidColorBrush Color="Transparent"/>
+                                            </local:StringToBrushConverter.DefaultBrush>
+                                        </local:StringToBrushConverter>
+                                    </Binding.Converter>
+                                </Binding>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"
+                                           Foreground="{Binding Path=Background, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource IconConverter}}"/>
+                                <TextBlock Text="Memory" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MacNavButton}" Command="{Binding NavToCommand}" CommandParameter="System">
+                            <Button.Background>
+                                <Binding Path="CurrentView">
+                                    <Binding.Converter>
+                                        <local:StringToBrushConverter MatchString="System">
+                                            <local:StringToBrushConverter.MatchBrush>
+                                                <SolidColorBrush Color="#E5E5E5"/>
+                                            </local:StringToBrushConverter.MatchBrush>
+                                            <local:StringToBrushConverter.DefaultBrush>
+                                                <SolidColorBrush Color="Transparent"/>
+                                            </local:StringToBrushConverter.DefaultBrush>
+                                        </local:StringToBrushConverter>
+                                    </Binding.Converter>
+                                </Binding>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"
+                                           Foreground="{Binding Path=Background, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource IconConverter}}"/>
+                                <TextBlock Text="System" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Consolidated Status Sidebar -->
+                    <StackPanel VerticalAlignment="Bottom" Margin="20">
+                        <Border Background="#EBEBEB" CornerRadius="12" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="HEALTH MONITOR" Foreground="#999999" FontSize="8" FontWeight="Black" Margin="0,0,0,10"/>
+                                
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="Backend" FontSize="10" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Ellipse Width="8" Height="8" Fill="{Binding BackendStatusColor}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBlock Text="{Binding BackendStatus}" FontSize="9" Foreground="#666666" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <Grid>
+                                    <TextBlock Text="VLM" FontSize="10" Foreground="#666666" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Ellipse Width="8" Height="8" Fill="{Binding VlmStatusColor}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBlock Text="{Binding VlmStatus}" FontSize="9" Foreground="#666666" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main Content Area -->
+            <Border Grid.Row="1" Grid.Column="1" Background="White" CornerRadius="0,0,16,0">
+                <Grid>
+                    <!-- Home View -->
+                    <Grid Margin="40">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Home">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        
+                        <StackPanel>
+                            <TextBlock Text="Welcome back." Foreground="#333333" FontSize="36" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <TextBlock Text="What would you like Rin to automate today?" Foreground="#888888" FontSize="17" Margin="0,0,0,40"/>
+
+                            <!-- Search/Spotlight Bar -->
+                            <Border Background="#F9F9F9" CornerRadius="16" Padding="20" BorderThickness="1" BorderBrush="#EEEEEE" Margin="0,0,0,15">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="" FontFamily="Segoe MDL2 Assets" Foreground="#BBBBBB" FontSize="20" VerticalAlignment="Center" Margin="10,0,20,0"/>
+                                    <TextBox Grid.Column="1" Text="{Binding CommandText, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Foreground="#333333" BorderThickness="0" FontSize="18" Padding="0" VerticalAlignment="Center">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Enter" Command="{Binding SubmitTaskCommand}"/>
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+                                    <!-- Placeholder text -->
+                                    <TextBlock Grid.Column="1" Text="Tell Rin what to do..." Foreground="#BBBBBB" FontSize="18" VerticalAlignment="Center" IsHitTestVisible="False">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CommandText}" Value="">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding CommandText}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <Button Grid.Column="2" Content="Run" Command="{Binding SubmitTaskCommand}" Background="{StaticResource AccentBlue}" Foreground="White" Width="60" Height="34" FontWeight="SemiBold">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="8"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                            
+                            <!-- Quick Examples -->
+                            <Border Background="Transparent" Margin="0,0,0,25">
+                                <StackPanel>
+                                    <TextBlock Text="TRY THESE" Foreground="#BBBBBB" FontSize="10" FontWeight="Bold" Margin="0,0,0,10"/>
+                                    <WrapPanel>
+                                        <Border Background="#F2F2F2" CornerRadius="8" Padding="12,8" Margin="0,0,10,8" Cursor="Hand" MouseLeftButtonDown="ExampleCommand_Click" Tag="Open Chrome and search for local weather">
+                                            <TextBlock Text="🌐 Search the web" Foreground="#555555" FontSize="12"/>
+                                        </Border>
+                                        <Border Background="#F2F2F2" CornerRadius="8" Padding="12,8" Margin="0,0,10,8" Cursor="Hand" MouseLeftButtonDown="ExampleCommand_Click" Tag="Open File Explorer and go to Downloads">
+                                            <TextBlock Text="📁 Browse files" Foreground="#555555" FontSize="12"/>
+                                        </Border>
+                                        <Border Background="#F2F2F2" CornerRadius="8" Padding="12,8" Margin="0,0,10,8" Cursor="Hand" MouseLeftButtonDown="ExampleCommand_Click" Tag="Open Notepad and type Hello World">
+                                            <TextBlock Text="📝 Write a note" Foreground="#555555" FontSize="12"/>
+                                        </Border>
+                                        <Border Background="#F2F2F2" CornerRadius="8" Padding="12,8" Margin="0,0,10,8" Cursor="Hand" MouseLeftButtonDown="ExampleCommand_Click" Tag="Take a screenshot and save it to Desktop">
+                                            <TextBlock Text="📸 Take screenshot" Foreground="#555555" FontSize="12"/>
+                                        </Border>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="White" CornerRadius="20" Padding="25" Margin="0,0,10,0" BorderThickness="1" BorderBrush="#EEEEEE">
+                                    <StackPanel>
+                                        <TextBlock Text="AGENT CONTROL" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,20"/>
+                                        
+                                        <!-- Overlay Toggle -->
+                                        <Grid Margin="0,0,0,20">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Live Interaction" Foreground="#333333" FontSize="15" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Enable desktop overlay" Foreground="#888888" FontSize="11"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1" Style="{StaticResource MacToggleStyle}" IsChecked="{Binding IsOverlayEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        
+                                        <!-- Wake Word Toggle -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Wake Word" Foreground="#333333" FontSize="15" FontWeight="SemiBold"/>
+                                                <TextBlock Text='Say "Hey Rin" to activate' Foreground="#888888" FontSize="11"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1" Style="{StaticResource MacToggleStyle}" IsChecked="{Binding IsWakeWordEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Background="White" CornerRadius="20" Padding="25" Margin="10,0,0,0" BorderThickness="1" BorderBrush="#EEEEEE">
+                                    <StackPanel>
+                                        <TextBlock Text="ACTIVE STATE" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,20"/>
+                                        <TextBlock Text="Action" Foreground="#888888" FontSize="12"/>
+                                        <TextBlock x:Name="ActionText" Text="{Binding CurrentAction}" Foreground="#333333" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding CurrentAction}" Value="Starting">
+                                                            <DataTrigger.EnterActions>
+                                                                <BeginStoryboard Name="PulseStart">
+                                                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.4" Duration="0:0:0.8"/>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </DataTrigger.EnterActions>
+                                                            <DataTrigger.ExitActions>
+                                                                <StopStoryboard BeginStoryboardName="PulseStart"/>
+                                                            </DataTrigger.ExitActions>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <Button Content="Restart Services" Command="{Binding RestartServicesCommand}" Height="34" Margin="0,15,0,0" Background="#F2F2F2" Foreground="#333333" FontSize="12">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="8"/>
+                                                </Style>
+                                            </Button.Resources>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Intelligence View -->
+                    <Grid Margin="40">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Intelligence">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Intelligence Stream" Foreground="#333333" FontSize="28" FontWeight="Bold" Margin="0,0,0,20"/>
+                            <Border Background="#F9F9F9" CornerRadius="16" BorderThickness="1" BorderBrush="#EEEEEE" Padding="20">
+                                <ScrollViewer>
+                                    <StackPanel>
+                                        <TextBlock Text="CURRENT THOUGHT" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,10"/>
+                                        <TextBlock Text="{Binding CurrentDetails}" Foreground="#333333" FontSize="16" TextWrapping="Wrap" Margin="0,0,0,30"/>
+                                        <TextBlock Text="ACTIVITY FEED" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,10"/>
+                                        <ItemsControl ItemsSource="{Binding ConsoleLogs}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderThickness="0,0,0,1" BorderBrush="#EEEEEE" Padding="0,8">
+                                                        <TextBlock Text="{Binding}" Foreground="#555555" FontSize="13" TextWrapping="Wrap"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                        </DockPanel>
+                    </Grid>
+
+                    <!-- Memory View -->
+                    <Grid Margin="40">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Memory">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Session Activity" Foreground="#333333" FontSize="28" FontWeight="Bold" Margin="0,0,0,20"/>
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="300"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Activity Log -->
+                                <Border Grid.Column="0" Background="#F9F9F9" CornerRadius="16" Padding="25" Margin="0,0,20,0" BorderThickness="1" BorderBrush="#EEEEEE">
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Top" Text="ACTIVITY LOG" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,15"/>
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding ConsoleLogs}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="White" CornerRadius="8" Padding="12" Margin="0,0,0,8" BorderThickness="1" BorderBrush="#EEEEEE">
+                                                            <TextBlock Text="{Binding}" Foreground="#555555" FontSize="12" TextWrapping="Wrap" FontFamily="Consolas"/>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </Border>
+                                
+                                <!-- Stats Panel -->
+                                <Border Grid.Column="1" Background="White" CornerRadius="16" Padding="20" BorderThickness="1" BorderBrush="#EEEEEE">
+                                    <StackPanel>
+                                        <TextBlock Text="SESSION STATS" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,15"/>
+                                        <Grid Margin="0,0,0,10">
+                                            <TextBlock Text="Log Entries" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConsoleLogs.Count}" Foreground="#333333" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,10">
+                                            <TextBlock Text="Backend" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding BackendStatus}" Foreground="#333333" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,10">
+                                            <TextBlock Text="VLM" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding VlmStatus}" Foreground="#333333" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        
+                                        <Border Margin="0,20,0,0" Background="#F9F9F9" CornerRadius="8" Padding="12">
+                                            <StackPanel>
+                                                <TextBlock Text="💡 Semantic Memory" Foreground="#333333" FontWeight="SemiBold" FontSize="11"/>
+                                                <TextBlock Text="Long-term learning coming in a future update." Foreground="#888888" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </DockPanel>
+                    </Grid>
+
+                    <!-- Workflows View -->
+                    <Grid Margin="40">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Workflows">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <StackPanel>
+                            <TextBlock Text="Active Workflows" Foreground="#333333" FontSize="28" FontWeight="Bold" Margin="0,0,0,20"/>
+                            <Border Background="#F9F9F9" CornerRadius="16" Padding="25" BorderThickness="1" BorderBrush="#EEEEEE">
+                                <StackPanel>
+                                    <TextBlock Text="ACTIVE AGENT TASK" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    <TextBlock Text="{Binding CurrentAction}" Foreground="#333333" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                                    <TextBlock Text="Rin is currently interacting with your desktop to fulfill the request." Foreground="#888888" FontSize="13"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- System View -->
+                    <Grid Margin="40">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="System">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="System Settings" Foreground="#333333" FontSize="28" FontWeight="Bold" Margin="0,0,0,30"/>
+                                
+                                <!-- Backend Config -->
+                                <Border Background="#F9F9F9" CornerRadius="16" Padding="25" BorderThickness="1" BorderBrush="#EEEEEE" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <TextBlock Text="BACKEND CONFIG" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,15"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="Backend Port" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigBackendPort}" Foreground="#333333" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="VLM Port" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigVlmPort}" Foreground="#333333" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="VLM Model" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigVlmModel}" Foreground="#333333" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" MaxWidth="300"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="GPU Layers" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigGpuLayers}" Foreground="#333333" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="Context Size" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigContextSize}" Foreground="#333333" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                </StackPanel>
+                                </Border>
+                                
+                                <!-- AI Model Selection -->
+                                <Border Background="#F9F9F9" CornerRadius="16" Padding="25" BorderThickness="1" BorderBrush="#EEEEEE" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <TextBlock Text="AI MODEL" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,15"/>
+                                        <TextBlock Text="Vision Model" Foreground="#333333" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                        <TextBlock Text="Select which AI powers Rin's vision" Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
+                                        
+                                        <!-- Qwen3-VL 4B -->
+                                        <Border Margin="0,0,0,8" Padding="12" CornerRadius="10" BorderThickness="1" 
+                                                BorderBrush="{Binding SelectedModelId, Converter={StaticResource ModelBorderConverter}, ConverterParameter=qwen3-vl-4b}"
+                                                Background="{Binding SelectedModelId, Converter={StaticResource ModelBgConverter}, ConverterParameter=qwen3-vl-4b}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <RadioButton Grid.Column="0" GroupName="ModelSelect" 
+                                                             IsChecked="{Binding IsQwen3Selected, Mode=TwoWay}"
+                                                             Command="{Binding SelectModelCommand}" CommandParameter="qwen3-vl-4b"
+                                                             VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="Qwen3-VL 4B" FontWeight="SemiBold" Foreground="#333333"/>
+                                                    <TextBlock Text="Default. Fast and accurate for computer control." FontSize="11" Foreground="#888888"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="2" Background="#E8F5E9" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                                    <TextBlock Text="Ready" FontSize="10" Foreground="#2E7D32" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        
+                                        <!-- Gemma 3 4B -->
+                                        <Border Margin="0,0,0,8" Padding="12" CornerRadius="10" BorderThickness="1"
+                                                BorderBrush="{Binding SelectedModelId, Converter={StaticResource ModelBorderConverter}, ConverterParameter=gemma-3-4b}"
+                                                Background="{Binding SelectedModelId, Converter={StaticResource ModelBgConverter}, ConverterParameter=gemma-3-4b}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <RadioButton Grid.Column="0" GroupName="ModelSelect"
+                                                             IsChecked="{Binding IsGemma3Selected, Mode=TwoWay}"
+                                                             Command="{Binding SelectModelCommand}" CommandParameter="gemma-3-4b"
+                                                             VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="Gemma 3 4B Vision" FontWeight="SemiBold" Foreground="#333333"/>
+                                                    <TextBlock Text="Google's multimodal model with 128K context." FontSize="11" Foreground="#888888"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="2" Background="#E8F5E9" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                                    <TextBlock Text="Ready" FontSize="10" Foreground="#2E7D32" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        
+                                        <!-- Phi 4 -->
+                                        <Border Margin="0,0,0,8" Padding="12" CornerRadius="10" BorderThickness="1" BorderBrush="#E0E0E0" Background="White" Opacity="0.6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <RadioButton Grid.Column="0" GroupName="ModelSelect" IsEnabled="False"
+                                                             VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="Phi 4 Multimodal" FontWeight="SemiBold" Foreground="#888888"/>
+                                                    <TextBlock Text="Microsoft's efficient multimodal model." FontSize="11" Foreground="#AAAAAA"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="2" Background="#FFF3E0" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                                    <TextBlock Text="Coming Soon" FontSize="10" Foreground="#E65100" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        
+                                        <!-- Moondream 3 -->
+                                        <Border Margin="0,0,0,0" Padding="12" CornerRadius="10" BorderThickness="1" BorderBrush="#E0E0E0" Background="White" Opacity="0.6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <RadioButton Grid.Column="0" GroupName="ModelSelect" IsEnabled="False"
+                                                             VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="Moondream 3" FontWeight="SemiBold" Foreground="#888888"/>
+                                                    <TextBlock Text="Lightweight MoE vision model." FontSize="11" Foreground="#AAAAAA"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="2" Background="#FFF3E0" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                                    <TextBlock Text="Coming Soon" FontSize="10" Foreground="#E65100" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Safety/Behavior Config -->
+                                <Border Background="#F9F9F9" CornerRadius="16" Padding="25" BorderThickness="1" BorderBrush="#EEEEEE">
+                                    <StackPanel>
+                                        <TextBlock Text="BEHAVIOR SETTINGS" Foreground="#999999" FontSize="10" FontWeight="Bold" Margin="0,0,0,15"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="Max Iterations" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigMaxIterations}" Foreground="#333333" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="Action Delay (s)" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigActionDelay, StringFormat={}{0:F2}}" Foreground="#333333" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="Failsafe Enabled" Foreground="#888888"/>
+                                            <TextBlock Text="{Binding ConfigFailsafeEnabled}" Foreground="#333333" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

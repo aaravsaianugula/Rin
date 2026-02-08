@@ -45,33 +45,21 @@ Rin is a **local AI agent** that sees your screen and controls your computer thr
 
 ## Quick Start
 
-### 1. Clone & Run Setup
+Open PowerShell and run:
 
 ```powershell
-git clone https://github.com/YOUR_USERNAME/Rin.git
-cd Rin
-powershell -ExecutionPolicy Bypass -File setup.ps1
+git clone https://github.com/aaravsaianugula/Rin.git; cd Rin; powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
 
-The setup wizard handles **everything** interactively:
-- ✅ Python environment & dependencies
-- ✅ AI model selection (Qwen3-VL / Gemma 3 / both)
-- ✅ llama.cpp build with GPU acceleration
-- ✅ Desktop overlay & Start Menu shortcuts
-- ✅ Background service registration
-- ✅ Mobile app setup with connection guide
+That's it. The setup wizard handles **everything**:
+- Python environment & dependencies
+- AI model download (Qwen3-VL / Gemma 3)
+- llama.cpp build with Vulkan GPU acceleration
+- Desktop overlay & Start Menu shortcuts
+- Background service registration
+- API key generation
 
-### 2. Run Rin
-
-```powershell
-# Interactive mode
-python main.py
-
-# Or start the always-on service
-Start-ScheduledTask -TaskName 'RinService'
-```
-
-The API server runs on `http://localhost:8000`. An API key is generated during setup and stored in `config/secrets/api_key.txt`.
+Once setup completes, Rin starts automatically. The API server runs on `http://localhost:8000`.
 
 <details>
 <summary>Manual setup (without wizard)</summary>

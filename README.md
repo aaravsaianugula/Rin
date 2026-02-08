@@ -48,7 +48,7 @@ Rin is a **local AI agent** that sees your screen and controls your computer thr
 Open PowerShell and run:
 
 ```powershell
-git clone <repo-url> Rin; cd Rin; powershell -ExecutionPolicy Bypass -File setup.ps1
+git clone https://github.com/aaravsaianugula/Rin.git; cd Rin; powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
 
 That's it. The setup wizard handles **everything**:
